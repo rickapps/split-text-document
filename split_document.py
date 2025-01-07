@@ -7,21 +7,28 @@ document section, create a new file named with the date in the delimeter.
 For each section, the date is converted to a standard form to be used as the
 file name.
 """
+import datetime
 import sys
 from dateutil.parser import parse
 
 def check_date(line):
     """Check if the line is a date"""
     try:
-        date = parse(line)
-        return date
+        date = parse(line[0:25], fuzzy_with_tokens=True)
+        # Make sure the date is before today
+        if date[0].date() >= datetime.datetime.today().date():
+            return None
+        # Find the index of the remaining text after the date. There should be no text before the date
+        if date[1][0].strip() != '':
+            return None
+        # Is there any text after the date?
+        if date[1][-1].strip() == '':
+            index = -1
+        else:
+            index = line.find(date[1][-1]) + 1
+        return (date[0], index)
     except ValueError:
         return None
-
-def remove_date(line):
-    """Remove the date from the line. We assume the date is at the beginning of the line"""
-    words = line[15:-1].split(' ')
-    text = ' '.join([alpha for alpha in words if alpha.isalpha()])
 
 def main(source):
     delimeter = True
@@ -41,12 +48,13 @@ def main(source):
                 if outfile is not None:
                     outfile.close()
                 # Create a new file   
-                outfile.open(date.strftime('%Y-%m-%d') + '.md', 'w')       
+                outfile = open(date[0].strftime('%Y-%m-%d') + '.md', 'w')       
                 # Write the date line
-                outfile.write(date.strftime('%d/%m/%Y, %H:%M:%S') + '\n')
+                outfile.write(date[0].strftime('%d/%m/%Y, %H:%M:%S') + '\n')
                 # Find the first words in the line
-                text = remove_date(line)
-                outfile.write(text)
+                if date[1] > 0:
+                    text = line[date[1]:]
+                    outfile.write(text)
             delimeter = False
             continue
         # If the previous line was not a delimeter, write the text
