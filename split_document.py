@@ -19,7 +19,7 @@ def check_date(line):
         if date[0].date() >= datetime.datetime.today().date():
             return None
         # Find the index of the remaining text after the date. There should be no text before the date
-        if date[1][0].strip() != '':
+        if date[1][0].strip().isalpha():
             return None
         # Is there any text after the date?
         if date[1][-1].strip() == '':
@@ -43,14 +43,15 @@ def main(source):
             date = check_date(line)
             if date is None:
                 # We have a paragraph
-                text = '\n'
+                outfile.write('\n')
+                outfile.write(line)
             else:
                 if outfile is not None:
                     outfile.close()
                 # Create a new file   
                 outfile = open(date[0].strftime('%Y-%m-%d') + '.md', 'w')       
                 # Write the date line
-                outfile.write(date[0].strftime('%d/%m/%Y, %H:%M:%S') + '\n')
+                outfile.write(date[0].strftime('***%A, %I:%M %p***') + '\n')
                 # Find the first words in the line
                 if date[1] > 0:
                     text = line[date[1]:]
