@@ -15,8 +15,8 @@ def check_date(line):
     """Check if the line is a date"""
     try:
         date = parse(line[0:25], fuzzy_with_tokens=True)
-        # Make sure the date is before today
-        if date[0].date() >= datetime.datetime.today().date():
+        # If the time is 12:00 AM, it is not a valid date
+        if date[0].time() == datetime.time(0, 0):
             return None
         # Find the index of the remaining text after the date. There should be no text before the date
         if date[1][0].strip().isalpha():
@@ -25,7 +25,7 @@ def check_date(line):
         if date[1][-1].strip() == '':
             index = -1
         else:
-            index = line.find(date[1][-1]) + 1
+            index = line.find(date[1][-1]) 
         return (date[0], index)
     except ValueError:
         return None
